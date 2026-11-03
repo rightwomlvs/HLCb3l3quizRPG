@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>時空偵探：失竊的鑽石項鍊 (Detective Matilda: The Lost Necklace Mystery)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Serif TC', 'Cinzel', serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      user-select: none;
+    }
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    .parchment-bg {
+      background: #fef3c7;
+      background-image: radial-gradient(#d97706 0.75px, transparent 0.75px), radial-gradient(#d97706 0.75px, #fef3c7 0.75px);
+      background-size: 30px 30px;
+      background-position: 0 0,15px 15px;
+      color: #451a03;
+    }
+    .gold-border {
+      border: 3px solid #d97706;
+      box-shadow: 0 0 15px rgba(217, 119, 6, 0.4);
+    }
+    .gold-button {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      transition: all 0.2s ease;
+    }
+    .gold-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
+    }
+    .gold-button:active {
+      transform: translateY(0);
+    }
+    .pulse-glow {
+      animation: pulseGlow 2s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 5px #f59e0b; }
+      to { box-shadow: 0 0 20px #f59e0b; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-2 md:p-4">
+
+  <!-- Main RWD Game Container (16:9 Aspect Ratio Lock) -->
+  <div id="game-app" class="w-full max-w-5xl bg-slate-900 border-4 border-amber-600 rounded-2xl shadow-2xl overflow-hidden flex flex-col min-h-[680px] relative">
+    
+    <!-- HEADER / HUD BAR -->
+    <header class="bg-slate-950 border-b-2 border-amber-600/60 p-3 px-4 flex justify-between items-center text-xs md:text-sm">
+      <div class="flex items-center space-x-3">
+        <span class="font-cinzel font-bold text-amber-400 text-base md:text-lg flex items-center gap-1">
+          🕵️‍♂️ Detective Matilda
+        </span>
+        <span id="player-tag" class="hidden md:inline bg-amber-950/80 text-amber-200 border border-amber-700/50 px-2 py-0.5 rounded text-xs">
+          Player: Inspector
+        </span>
+      </div>
+
+      <!-- HUD Stats -->
+      <div id="hud-stats" class="hidden flex items-center space-x-4">
+        <!-- Health Bar -->
+        <div class="flex items-center space-x-1" title="Detective HP / 偵探心智血量">
+          <span class="text-red-400">❤️</span>
+          <div class="w-20 md:w-28 bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
+            <div id="hp-bar" class="bg-red-500 h-full transition-all duration-300" style="width: 100%;"></div>
+          </div>
+          <span id="hp-text" class="text-xs font-mono text-red-300">100</span>
+        </div>
+
+        <!-- Timer -->
+        <div class="flex items-center space-x-1 font-mono text-amber-300" title="Timer / 限時">
+          <span>⏳</span>
+          <span id="timer-text" class="text-sm font-bold">30s</span>
+        </div>
+
+        <!-- Combo & Score -->
+        <div class="text-right">
+          <div class="text-amber-400 font-bold font-mono text-xs md:text-sm">
+            SCORE: <span id="score-text">0</span>
+          </div>
+          <div id="combo-tag" class="text-[10px] text-yellow-300 font-bold opacity-0 transition-opacity">
+            COMBO x<span id="combo-count">1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings / Audio Controls -->
+      <div class="flex items-center space-x-2">
+        <button id="tts-toggle-btn" onclick="toggleTTSSetting()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-amber-300 text-xs flex items-center gap-1" title="Speech Voice Read-Aloud / 語意朗讀">
+          🔊 <span id="tts-status-text">TTS: ON</span>
+        </button>
+        <button id="sound-toggle-btn" onclick="toggleAudio()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-amber-300 text-xs" title="SFX Mute / 音效開關">
+          🎵 Mute
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN STAGE / CONTENT AREA -->
+    <main id="main-stage" class="flex-1 flex flex-col justify-between p-4 md:p-6 relative overflow-y-auto">
+      <!-- Dynamic Screen Content Injected Here by JS -->
+    </main>
+
+    <!-- FOOTER BRANDING -->
+    <footer class="bg-slate-950/80 border-t border-slate-800 px-4 py-1.5 text-[11px] text-slate-400 flex justify-between items-center">
+      <span>Lesson 3: The Necklace | 翰林技高英文 Choice (三)</span>
+      <span>TW-Edu-Game-Architect SDD Engine</span>
+    </footer>
+
+    <!-- SCAFFOLD / AI HINT DRAWER MODAL -->
+    <div id="scaffold-modal" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="parchment-bg gold-border rounded-xl max-w-lg w-full p-5 relative shadow-2xl text-amber-950 flex flex-col max-h-[85vh] overflow-y-auto">
+        <button onclick="closeScaffoldModal()" class="absolute top-3 right-3 text-amber-800 hover:text-amber-950 font-bold text-xl">✕</button>
+        <h3 class="font-cinzel font-bold text-lg text-amber-900 border-b-2 border-amber-800/40 pb-2 mb-3 flex items-center gap-2">
+          💡 偵探鷹架提示 Drawer / Scaffolding Hints
+        </h3>
+        
+        <!-- Hint 1 -->
+        <div id="hint-1-box" class="mb-3 p-3 bg-amber-100/80 border border-amber-300 rounded-lg text-sm">
+          <div class="font-bold text-amber-800 mb-1">【Stage 1: 情境線索 Context Clue】</div>
+          <p id="hint-1-text" class="text-amber-900"></p>
+        </div>
+
+        <!-- Hint 2 -->
+        <div id="hint-2-box" class="hidden mb-3 p-3 bg-amber-200/80 border border-amber-400 rounded-lg text-sm">
+          <div class="font-bold text-amber-900 mb-1">【Stage 2: 語法結構指示 Grammar Structure】</div>
+          <p id="hint-2-text" class="text-amber-950"></p>
+        </div>
+
+        <!-- Hint 3: Gemini AI Agent -->
+        <div id="hint-3-box" class="hidden mb-3 p-3 bg-indigo-900 text-indigo-100 border border-indigo-500 rounded-lg text-sm">
+          <div class="font-bold text-indigo-300 mb-1 flex items-center justify-between">
+            <span>【Stage 3: Gemini AI 蘇格拉底助教 Socratic Tutor】</span>
+            <span class="text-[10px] bg-indigo-700 text-indigo-200 px-1.5 py-0.5 rounded">gemini-2.5-flash</span>
+          </div>
+          <p id="hint-3-text" class="italic text-indigo-200">點擊下方按鈕引導 AI 提供啟發式提問...</p>
+          <button id="ask-ai-btn" onclick="triggerGeminiAITutor()" class="mt-2 w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-bold transition">
+            ✨ 呼叫 AI 偵探助教 (Ask Gemini AI)
+          </button>
+        </div>
+
+        <button onclick="closeScaffoldModal()" class="w-full mt-2 py-2 gold-button font-bold rounded text-sm">
+          返回作答 (Return to Investigation)
+        </button>
+      </div>
+    </div>
+
+    <!-- FEEDBACK & TTS SPEECH MODAL -->
+    <div id="feedback-modal" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md z-40 flex items-center justify-center p-4">
+      <div class="bg-slate-900 border-2 border-amber-500 rounded-xl max-w-md w-full p-5 text-center shadow-2xl text-slate-100">
+        <div id="fb-icon" class="text-4xl mb-2">🎉</div>
+        <h3 id="fb-title" class="text-xl font-bold font-cinzel text-amber-400 mb-1">Correct Answer!</h3>
+        <p id="fb-subtitle" class="text-xs text-slate-300 mb-4">推理正確！獲取關鍵證物線索。</p>
+
+        <!-- Full Sentence Display + Speech Button -->
+        <div class="bg-slate-950 border border-amber-700/60 p-3.5 rounded-lg mb-4 text-left">
+          <div class="text-[11px] text-amber-400 font-bold mb-1 flex justify-between items-center">
+            <span>🔊 完整英文目標句 (Target English Sentence):</span>
+            <button onclick="playCurrentTargetSentenceTTS()" class="text-amber-300 hover:text-amber-100 underline text-xs">重新朗讀 (Replay)</button>
+          </div>
+          <div id="fb-target-sentence" class="text-sm font-semibold text-slate-100 mb-1 leading-relaxed"></div>
+          <div id="fb-target-translation" class="text-xs text-slate-400"></div>
+        </div>
+
+        <div id="fb-explanation" class="text-xs text-amber-200/90 bg-amber-950/40 p-2.5 rounded border border-amber-800/40 mb-4 text-left"></div>
+
+        <button id="next-q-btn" onclick="nextQuestion()" class="w-full py-2.5 gold-button font-bold rounded-lg text-sm">
+          繼續下一關 (Next Clue ➔)
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    /* ==========================================================================
+       1. GLOBAL STATE & CONFIGURATION
+       ========================================================================== */
+    const CONFIG = {
+      maxHP: 100,
+      damagePerError: 15,
+      timePerQuestion: 30,
+      baseScore: 100,
+      geminiModel: "gemini-2.5-flash-preview-09-2025"
+    };
+
+    let state = {
+      playerName: "Inspector",
+      language: "zh-TW",
+      currentQIndex: 0,
+      score: 0,
+      hp: 100,
+      combo: 0,
+      timer: 30,
+      timerInterval: null,
+      audioMuted: false,
+      ttsEnabled: true,
+      userApiKey: "",
+      answersLog: [],
+      wrongPool: []
+    };
+
+    /* ==========================================================================
+       2. 15 FULL STRUCTURED QUESTIONS (De-sensitized Node Names)
+       ========================================================================== */
+    const QUESTIONS_DB = [
+      {
+        id: 1,
+        chapter: "Chapter 1: The Banquet Salon 宴會廳",
+        nodeId: "Vocab-Replace",
+        nodeName: "動詞片語介系詞搭配",
+        speaker: "Jensen Huang (黃仁勳)",
+        speakerAvatarSeed: "Jensen",
+        question: "Jensen Huang suggested that Matilda should replace her old necklace ______ a luxury sparkling one.",
+        questionCN: "黃仁勳建議瑪蒂達應該用一條奢華閃亮的項鍊替換掉舊項鍊。",
+        options: ["with", "from", "to", "as"],
+        correctIndex: 0,
+        targetSentence: "Matilda should replace her old necklace with a luxury sparkling one.",
+        sentenceTranslation: "瑪蒂達應該用一條奢華閃亮的項鍊替換掉舊項鍊。",
+        hints: [
+          "💡 replace (替換) 的固定介系詞搭配表示『用...來替換』。",
+          "💡 句型結構為：replace A with B (用 B 替換 A)。",
+          "📖 replace A with B 為固定搭配，表示使用 B 物品取代原本的 A 物品。"
+        ],
+        wikiKeyword: "diamond necklace"
+      },
+      {
+        id: 2,
+        chapter: "Chapter 1: The Banquet Salon 宴會廳",
+        nodeId: "Phrase-Fortune",
+        nodeName: "高昂花費名詞短語",
+        speaker: "Jeweler 珠寶商",
+        speakerAvatarSeed: "Jeweler1",
+        question: "The new diamond necklace costs a ______, but many wealthy ladies still want to buy it.",
+        questionCN: "這條新鑽石項鍊價值不菲，但許多富有的女士仍然想購買它。",
+        options: ["fortune", "debt", "poverty", "praise"],
+        correctIndex: 0,
+        targetSentence: "The new diamond necklace costs a fortune, but many ladies still want to buy it.",
+        sentenceTranslation: "這條新鑽石項鍊價值不菲，但許多女士仍然想買它。",
+        hints: [
+          "💡 尋找代表『一筆巨款/財富』的名詞短語。",
+          "💡 片語 cost a ______ 意為花費巨資、極其昂貴。",
+          "📖 cost a fortune 為固定短語，意指價格非常昂貴或花費一筆巨款。"
+        ],
+        wikiKeyword: "jewelry store"
+      },
+      {
+        id: 3,
+        chapter: "Chapter 2: Financial Crisis 財務危機",
+        nodeId: "Phrase-Debt",
+        nodeName: "進入債務狀態介系詞",
+        speaker: "Miranda 友人",
+        speakerAvatarSeed: "Miranda",
+        question: "Miranda spent too much money; as a result, she got ______ debt and couldn't pay her bills.",
+        questionCN: "米蘭達花費太多錢，結果陷入負債且付不出帳單。",
+        options: ["into", "on", "at", "for"],
+        correctIndex: 0,
+        targetSentence: "Miranda spent too much money; as a result, she got into debt and couldn't pay her bills.",
+        sentenceTranslation: "米蘭達花費太多錢，結果陷入負債且付不出帳單。",
+        hints: [
+          "💡 表示『進入』某種負債狀態應該使用哪個介系詞？",
+          "💡 搭配名詞 debt (債務) 時，慣用介系詞為 into。",
+          "📖 get into debt 意為陷入負債、欠下債務。"
+        ],
+        wikiKeyword: "bills money"
+      },
+      {
+        id: 4,
+        chapter: "Chapter 2: Financial Crisis 財務危機",
+        nodeId: "Grammar-Whether1",
+        nodeName: "表達『是否』名詞子句",
+        speaker: "Detective 偵探夥伴",
+        speakerAvatarSeed: "Detective1",
+        question: "The high ratings for the jewelry shop make me wonder ______ it is really so famous.",
+        questionCN: "這家珠寶店的高評價讓我想知道它是否真的這麼有名。",
+        options: ["whether", "for", "about", "which"],
+        correctIndex: 0,
+        targetSentence: "The high ratings make me wonder whether it is really so famous.",
+        sentenceTranslation: "高評價讓我想知道它是否真的這麼有名。",
+        hints: [
+          "💡 動詞 wonder (想知道) 後方需要引導表示『是否』的名詞子句。",
+          "💡 表達『是否』的概念應選擇 whether 或 if。",
+          "📖 wonder 後接 whether 引導名詞子句作為受詞。"
+        ],
+        wikiKeyword: "magnifying glass"
+      },
+      {
+        id: 5,
+        chapter: "Chapter 2: Financial Crisis 財務危機",
+        nodeId: "Grammar-Whether2",
+        nodeName: "介系詞後名詞子句限制",
+        speaker: "Mark 同事",
+        speakerAvatarSeed: "Mark",
+        question: "Mark is thinking about ______ he should lend some money to his friend.",
+        questionCN: "馬克正在考慮是否應該借一些錢給他的朋友。",
+        options: ["whether", "if", "that", "what"],
+        correctIndex: 0,
+        targetSentence: "Mark is thinking about whether he should lend some money to his friend.",
+        sentenceTranslation: "馬克正在考慮是否應該借錢給朋友。",
+        hints: [
+          "💡 介系詞 about 後方接『是否』時有嚴格的語法限制！",
+          "💡 在介系詞 (about) 後面只能使用 whether，絕對不可使用 if！",
+          "📖 介系詞後方引導『是否』的名詞子句時，僅能使用 whether，不可使用 if。"
+        ],
+        wikiKeyword: "thinking man"
+      },
+      {
+        id: 6,
+        chapter: "Chapter 3: The Crime Scene 案發現場",
+        nodeId: "Grammar-Participle1",
+        nodeName: "分詞構句 (被動語態)",
+        speaker: "Museum Guard 保全",
+        speakerAvatarSeed: "Guard",
+        question: "______ by a severe storm, the local museum is closed for urgent repairs.",
+        questionCN: "遭到強烈暴風雨破壞，當地博物館暫時關閉進行緊急維修。",
+        options: ["Damaged", "Damage", "Damaging", "Be damaged"],
+        correctIndex: 0,
+        targetSentence: "Damaged by a severe storm, the museum is closed for repairs.",
+        sentenceTranslation: "遭到強烈暴風雨破壞，博物館關閉維修。",
+        hints: [
+          "💡 判斷主詞 the museum 與動詞 damage (破壞) 的關係是『主動』還是『被動』？",
+          "💡 被動語態的分詞構句需省略連詞與被動動詞，保留過去分詞 (V-ed)。",
+          "📖 原句為 Because the museum was damaged by..., 簡化為過去分詞 Damaged..."
+        ],
+        wikiKeyword: "old building storm"
+      },
+      {
+        id: 7,
+        chapter: "Chapter 3: The Crime Scene 案發現場",
+        nodeId: "Grammar-Participle2",
+        nodeName: "分詞構句 (否定形式)",
+        speaker: "Matilda 瑪蒂達",
+        speakerAvatarSeed: "Matilda",
+        question: "______ to tell her friend the truth, Matilda came up with a bold idea to buy a new one.",
+        questionCN: "不敢向朋友說出真相，瑪蒂達想出了一個買新項鍊替換的大膽想法。",
+        options: ["Not daring", "Daring", "Not to dare", "To dare"],
+        correctIndex: 0,
+        targetSentence: "Not daring to tell the truth, Matilda decided to buy a new necklace.",
+        sentenceTranslation: "不敢說出真相，瑪蒂達決定買一條新項鍊。",
+        hints: [
+          "💡 分詞構句中，否定詞 Not 應該放在什麼位置？",
+          "💡 否定詞 Not 必須直接置於現在分詞 (daring) 的最前方。",
+          "📖 原句為 Because she did not dare to..., 簡化否定分詞構句為 Not daring..."
+        ],
+        wikiKeyword: "secret letter"
+      },
+      {
+        id: 8,
+        chapter: "Chapter 4: Poverty & Hardship 艱辛歲月",
+        nodeId: "Vocab-Poverty",
+        nodeName: "生活狀態核心字彙",
+        speaker: "Madame Forestier 瑪德蓮",
+        speakerAvatarSeed: "Forestier",
+        question: "They worked extremely hard to pay off the huge debt and lived in ______ for ten years.",
+        questionCN: "他們極其努力工作以償還龐大債務，並在貧困中生活了十年。",
+        options: ["poverty", "wealth", "admiration", "praise"],
+        correctIndex: 0,
+        targetSentence: "They worked hard to pay off the debt and lived in poverty for ten years.",
+        sentenceTranslation: "他們努力工作還債，並在貧窮中生活了十年。",
+        hints: [
+          "💡 欠債還錢十年，生活會處於什麼樣的艱困狀態？",
+          "💡 名詞 poverty 意為『貧困、貧窮』；wealth 為相反詞『富有』。",
+          "📖 live in poverty 為固定搭配，表示生活在貧困之中。"
+        ],
+        wikiKeyword: "poor street"
+      },
+      {
+        id: 9,
+        chapter: "Chapter 4: Poverty & Hardship 艱辛歲月",
+        nodeId: "Phrase-RunInto",
+        nodeName: "巧遇動詞短語選用",
+        speaker: "Alice 同學",
+        speakerAvatarSeed: "Alice",
+        question: "When Alice was shopping downtown, she didn't expect to ______ her elementary school teacher.",
+        questionCN: "當愛麗絲在市中心購物時，她沒想到會巧遇小學老師。",
+        options: ["run into", "pay off", "get into", "cost a"],
+        correctIndex: 0,
+        targetSentence: "When Alice was shopping downtown, she didn't expect to run into her teacher.",
+        sentenceTranslation: "當愛麗絲在市中心購物時，她沒想到會巧遇她的老師。",
+        hints: [
+          "💡 尋找表示『巧遇、偶遇』的動詞短語。",
+          "💡 run into 意為巧遇、偶遇；pay off 為還清。",
+          "📖 run into someone 意指不預期地遇到某人。"
+        ],
+        wikiKeyword: "street meeting"
+      },
+      {
+        id: 10,
+        chapter: "Chapter 4: Poverty & Hardship 艱辛歲月",
+        nodeId: "Phrase-PayOff",
+        nodeName: "償還債務動詞短語",
+        speaker: "David 青年",
+        speakerAvatarSeed: "David",
+        question: "After working two jobs for a year, David finally saved enough money to ______ his loan.",
+        questionCN: "在同時兼兩份工一年後，大衛終於存夠錢償還他的學貸。",
+        options: ["pay off", "run into", "replace with", "wonder if"],
+        correctIndex: 0,
+        targetSentence: "David finally saved enough money to pay off his student loan.",
+        sentenceTranslation: "大衛終於存夠錢償還他的學貸。",
+        hints: [
+          "💡 表示『付清、還清債務』應選擇哪個短語？",
+          "💡 pay off 意為還清 (貸款/債務)。",
+          "📖 pay off student loans 表示全數還清學生貸款。"
+        ],
+        wikiKeyword: "piggy bank money"
+      },
+      {
+        id: 11,
+        chapter: "Chapter 5: The Final Courtroom 終極法庭",
+        nodeId: "Phrase-AtMost",
+        nodeName: "數量上限介系詞短語",
+        speaker: "Madame Forestier 瑪德蓮",
+        speakerAvatarSeed: "Forestier2",
+        question: "Matilda finally learned the sad truth that the original necklace was worth 500 francs ______.",
+        questionCN: "瑪蒂達終於得知悲慘的真相：原來的項鍊最多只值 500 法郎。",
+        options: ["at most", "at once", "at last", "at first"],
+        correctIndex: 0,
+        targetSentence: "The original necklace was worth 500 francs at most.",
+        sentenceTranslation: "原來的項鍊最多只值 500 法郎。",
+        hints: [
+          "💡 尋找表示『最多、充其量』的介系詞短語。",
+          "💡 at most 表示『最多』；at once 表示『立刻』；at last 表示『終於』。",
+          "📖 at most 用於數量上限的限制，意為最多、不超過。"
+        ],
+        wikiKeyword: "old coins franc"
+      },
+      {
+        id: 12,
+        chapter: "Chapter 5: The Final Courtroom 終極法庭",
+        nodeId: "Grammar-Participle3",
+        nodeName: "分詞構句 (主動進行)",
+        speaker: "Mia 孩童",
+        speakerAvatarSeed: "Mia",
+        question: "When ______ other children playing a game, Mia wanted to join them.",
+        questionCN: "當看見其他孩子在玩遊戲時，米亞想加入他們。",
+        options: ["watching", "watch", "to watch", "watched"],
+        correctIndex: 0,
+        targetSentence: "When watching other children playing a game, Mia wanted to join them.",
+        sentenceTranslation: "當看見其他孩子在玩遊戲時，米亞想加入他們。",
+        hints: [
+          "💡 主詞 Mia 與觀看 (watch) 的關係是主動進行還是被動？",
+          "💡 保留連詞 When 的主動分詞構句需使用現在分詞 V-ing。",
+          "📖 When Mia watched... 簡化為 When watching..."
+        ],
+        wikiKeyword: "children playing"
+      },
+      {
+        id: 13,
+        chapter: "Chapter 5: The Final Courtroom 終極法庭",
+        nodeId: "Grammar-Participle4",
+        nodeName: "原因分詞構句 (否定)",
+        speaker: "Emma 學生",
+        speakerAvatarSeed: "Emma",
+        question: "______ what to do, Emma asked her English teacher for immediate help.",
+        questionCN: "不知道該怎麼辦，艾瑪向她的英文老師尋求立即幫助。",
+        options: ["Not knowing", "Not to know", "Knowing not", "Not known"],
+        correctIndex: 0,
+        targetSentence: "Not knowing what to do, Emma asked her teacher for help.",
+        sentenceTranslation: "不知道該怎麼辦，艾瑪向老師尋求幫助。",
+        hints: [
+          "💡 原因子句 Because Emma didn't know... 改寫為分詞構句。",
+          "💡 否定詞 Not 必須放在現在分詞 knowing 的前面。",
+          "📖 Because she didn't know -> Not knowing what to do..."
+        ],
+        wikiKeyword: "confused student"
+      },
+      {
+        id: 14,
+        chapter: "Chapter 5: The Final Courtroom 終極法庭",
+        nodeId: "Sentence-Reorder1",
+        nodeName: "名詞子句連詞規範",
+        speaker: "Judge 法官",
+        speakerAvatarSeed: "Judge1",
+        question: "Reorder: Some students haven't decided ______ they will go to college or not.",
+        questionCN: "重組句：有些學生尚未決定他們是否要讀大學。",
+        options: ["whether", "if", "that", "what"],
+        correctIndex: 0,
+        targetSentence: "Some students haven't decided whether they will go to college or not.",
+        sentenceTranslation: "有些學生尚未決定他們是否要讀大學。",
+        hints: [
+          "💡 句尾有 or not 時，與 whether 連用為最佳語法規範。",
+          "💡 與 or not 直接或間接連用時，優先選擇 whether 而非 if。",
+          "📖 whether ... or not 為標準名詞子句結構。"
+        ],
+        wikiKeyword: "college graduation"
+      },
+      {
+        id: 15,
+        chapter: "Chapter 5: The Final Courtroom 終極法庭",
+        nodeId: "Sentence-Reorder2",
+        nodeName: "否定分詞構句重組",
+        speaker: "Kevin 青年",
+        speakerAvatarSeed: "Kevin",
+        question: "______ enough money for a taxi, Kevin had to walk home late at night.",
+        questionCN: "因為沒有足夠的錢搭計程車，凱文不得不半夜走路回家。",
+        options: ["Not having", "Having not", "Not have", "To not have"],
+        correctIndex: 0,
+        targetSentence: "Not having enough money for a taxi, Kevin had to walk home late at night.",
+        sentenceTranslation: "因為沒有足夠的錢搭計程車，凱文不得不半夜走路回家。",
+        hints: [
+          "💡 原因副詞子句 Because Kevin did not have enough money... 改寫。",
+          "💡 否定分詞構句形式：Not + V-ing + 受詞。",
+          "📖 Not having enough money... 為標準否定分詞結構。"
+        ],
+        wikiKeyword: "walking night street"
+      }
+    ];
+
+    /* ==========================================================================
+       3. WEB AUDIO API SYNTHESIZER & SPEECH SYNTHESIS ENGINE
+       ========================================================================== */
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration) {
+      if (state.audioMuted) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playClickSound() { playTone(600, 'sine', 0.08); }
+    function playCorrectSound() {
+      playTone(523.25, 'triangle', 0.12);
+      setTimeout(() => playTone(659.25, 'triangle', 0.12), 100);
+      setTimeout(() => playTone(783.99, 'triangle', 0.2), 200);
+    }
+    function playWrongSound() {
+      playTone(220, 'sawtooth', 0.15);
+      setTimeout(() => playTone(180, 'sawtooth', 0.25), 120);
+    }
+
+    function toggleAudio() {
+      state.audioMuted = !state.audioMuted;
+      document.getElementById('sound-toggle-btn').innerText = state.audioMuted ? "🔇 Muted" : "🎵 Mute";
+    }
+
+    function toggleTTSSetting() {
+      state.ttsEnabled = !state.ttsEnabled;
+      document.getElementById('tts-status-text').innerText = state.ttsEnabled ? "TTS: ON" : "TTS: OFF";
+      if (!state.ttsEnabled && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    function speakSentence(text) {
+      if (!state.ttsEnabled || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn("Speech Synthesis failed:", e);
+      }
+    }
+
+    function playCurrentTargetSentenceTTS() {
+      const q = QUESTIONS_DB[state.currentQIndex];
+      if (q && q.targetSentence) {
+        speakSentence(q.targetSentence);
+      }
+    }
+
+    /* ==========================================================================
+       4. EXTERNAL ASSET API & SVG FALLBACK SYSTEM
+       ========================================================================== */
+    function getDiceBearAvatar(seed) {
+      return `https://api.dicebear.com/9.x/personas/svg?seed=${encodeURIComponent(seed)}`;
+    }
+
+    function getPollinationsImage(prompt) {
+      return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ', 19th century Paris illustration, Victorian mystery style')}?width=500&height=300&nologo=true`;
+    }
+
+    function handleImgError(imgEl, title) {
+      imgEl.onerror = null;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="300" viewBox="0 0 500 300">
+        <rect width="100%" height="100%" fill="#1e1b4b" stroke="#d97706" stroke-width="4"/>
+        <circle cx="250" cy="120" r="45" fill="#312e81" stroke="#fbbf24" stroke-width="2"/>
+        <text x="250" y="130" font-size="36" text-anchor="middle" fill="#fbbf24">💎</text>
+        <text x="250" y="210" font-family="serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#fef3c7">${title}</text>
+        <text x="250" y="240" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#94a3b8">Detective Evidence Card</text>
+      </svg>`;
+      imgEl.src = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    /* ==========================================================================
+       5. GAME LIFECYCLE & RENDERERS
+       ========================================================================== */
+    window.onload = () => {
+      renderInitScreen();
+    };
+
+    function renderInitScreen() {
+      const main = document.getElementById('main-stage');
+      document.getElementById('hud-stats').classList.add('hidden');
+
+      main.innerHTML = `
+        <div class="flex-1 flex flex-col items-center justify-center text-center p-4">
+          <div class="mb-4 inline-block p-4 rounded-full bg-amber-950/60 border-2 border-amber-500 shadow-xl pulse-glow">
+            <span class="text-6xl">🕵️‍♂️💎</span>
+          </div>
+          <h1 class="text-2xl md:text-4xl font-bold font-cinzel text-amber-400 mb-2">
+            時空偵探：失竊的鑽石項鍊
+          </h1>
+          <h2 class="text-sm md:text-base text-amber-200/80 mb-6 font-cinzel">
+            Detective Matilda: The Lost Necklace Mystery
+          </h2>
+
+          <!-- Form Input -->
+          <div class="bg-slate-950/80 border border-amber-700/60 p-5 rounded-xl max-w-md w-full mb-6 shadow-lg text-left">
+            <label class="block text-xs font-bold text-amber-300 mb-1">
+              🕵️ Inspector Name / 偵探姓名 (座號):
+            </label>
+            <input type="text" id="input-player-name" value="Inspector 01" class="w-full bg-slate-900 border border-amber-600 rounded px-3 py-2 text-sm text-amber-100 mb-4 focus:outline-none focus:border-amber-400"/>
+
+            <label class="block text-xs font-bold text-indigo-300 mb-1">
+              🔑 Optional Gemini API Key (選填，啟用 AI 助教):
+            </label>
+            <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-indigo-600 rounded px-3 py-2 text-xs text-indigo-200 focus:outline-none focus:border-indigo-400"/>
+            <p class="text-[10px] text-slate-400 mt-1">未填寫時將預設使用靜態高級三階鷹架與離線題庫。</p>
+          </div>
+
+          <button onclick="startGame()" class="px-8 py-3.5 gold-button font-bold text-base md:text-lg rounded-xl shadow-xl flex items-center gap-2">
+            🚀 開啟推理辦案 (Start Investigation)
+          </button>
+        </div>
+      `;
+    }
+
+    function startGame() {
+      playClickSound();
+      const pName = document.getElementById('input-player-name').value.trim();
+      if (pName) state.playerName = pName;
+      state.userApiKey = document.getElementById('input-api-key').value.trim();
+
+      document.getElementById('player-tag').innerText = `Inspector: ${state.playerName}`;
+      document.getElementById('hud-stats').classList.remove('hidden');
+
+      state.currentQIndex = 0;
+      state.score = 0;
+      state.hp = CONFIG.maxHP;
+      state.combo = 0;
+      state.answersLog = [];
+      state.wrongPool = [];
+
+      updateHUD();
+      renderQuestion();
+    }
+
+    function updateHUD() {
+      document.getElementById('hp-bar').style.width = `${state.hp}%`;
+      document.getElementById('hp-text').innerText = state.hp;
+      document.getElementById('score-text').innerText = state.score;
+      document.getElementById('combo-count').innerText = state.combo;
+      
+      const comboTag = document.getElementById('combo-tag');
+      if (state.combo > 1) {
+        comboTag.classList.remove('opacity-0');
+      } else {
+        comboTag.classList.add('opacity-0');
+      }
+    }
+
+    function startTimer() {
+      clearInterval(state.timerInterval);
+      state.timer = CONFIG.timePerQuestion;
+      document.getElementById('timer-text').innerText = `${state.timer}s`;
+      
+      state.timerInterval = setInterval(() => {
+        state.timer--;
+        document.getElementById('timer-text').innerText = `${state.timer}s`;
+        if (state.timer <= 0) {
+          clearInterval(state.timerInterval);
+          handleTimeOut();
+        }
+      }, 1000);
+    }
+
+    function renderQuestion() {
+      startTimer();
+      const q = QUESTIONS_DB[state.currentQIndex];
+      const main = document.getElementById('main-stage');
+
+      const avatarUrl = getDiceBearAvatar(q.speakerAvatarSeed);
+      const sceneImgUrl = getPollinationsImage(q.wikiKeyword);
+
+      main.innerHTML = `
+        <div class="flex-1 flex flex-col justify-between space-y-4">
+          
+          <!-- Top Chapter & Progress -->
+          <div class="flex justify-between items-center text-xs text-amber-400/90 font-cinzel border-b border-amber-900/40 pb-2">
+            <span>📍 ${q.chapter}</span>
+            <span>Clue ${state.currentQIndex + 1} / ${QUESTIONS_DB.length}</span>
+          </div>
+
+          <!-- Main RPG Interactive Scene -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center my-auto">
+            
+            <!-- Left: NPC Avatar & Dialogue -->
+            <div class="md:col-span-5 flex flex-col items-center bg-slate-950/70 p-3 rounded-xl border border-amber-800/40">
+              <img src="${avatarUrl}" alt="NPC" class="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-amber-500 shadow-md mb-2 bg-slate-900" onerror="handleImgError(this, '${q.speaker}')"/>
+              <div class="text-xs font-bold text-amber-300 font-cinzel mb-1">${q.speaker}</div>
+              <div class="text-[11px] text-slate-300 bg-slate-900/90 p-2 rounded border border-slate-700 text-center w-full">
+                「${q.questionCN}」
+              </div>
+            </div>
+
+            <!-- Right: Evidence Card / Scene Picture -->
+            <div class="md:col-span-7 flex flex-col items-center">
+              <div class="w-full h-36 md:h-44 rounded-xl overflow-hidden border-2 border-amber-600/70 shadow-lg relative bg-slate-950">
+                <img src="${sceneImgUrl}" alt="Scene" class="w-full h-full object-cover" onerror="handleImgError(this, '${q.chapter}')"/>
+                <div class="absolute bottom-0 inset-x-0 bg-slate-950/80 px-3 py-1 text-[11px] text-amber-200 flex justify-between">
+                  <span>證物類別: 核心文法與詞彙推理</span>
+                  <span class="text-amber-400">Target: Grammar/Vocab</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question Stem Box (Leaked Answer Tag Removed) -->
+          <div class="bg-slate-950 border-2 border-amber-500/80 p-4 rounded-xl shadow-xl text-center">
+            <p class="text-sm md:text-base font-semibold text-amber-100 leading-relaxed mb-1">
+              ${q.question}
+            </p>
+            <div class="text-xs text-amber-300/80 italic font-mono">
+              [ 🔍 偵探線索考驗 ]
+            </div>
+          </div>
+
+          <!-- Options Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            ${q.options.map((opt, idx) => `
+              <button onclick="submitAnswer(${idx})" class="p-3 bg-slate-800 hover:bg-amber-900/60 border border-amber-700/60 hover:border-amber-400 rounded-lg text-left text-xs md:text-sm font-semibold text-slate-100 transition flex items-center justify-between group">
+                <span><strong class="text-amber-400 font-mono mr-2">${String.fromCharCode(65 + idx)}.</strong> ${opt}</span>
+                <span class="opacity-0 group-hover:opacity-100 text-amber-300 transition text-xs">Choose ➔</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- Bottom Action Bar -->
+          <div class="flex justify-between items-center text-xs pt-1">
+            <button onclick="openScaffoldModal()" class="px-3 py-1.5 bg-amber-950 hover:bg-amber-900 border border-amber-600 rounded text-amber-300 flex items-center gap-1 font-bold">
+              💡 求助偵探鷹架 (Scaffold Hints)
+            </button>
+            <button onclick="playCurrentTargetSentenceTTS()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-amber-200 flex items-center gap-1">
+              🔊 預覽題目語音
+            </button>
+          </div>
+
+        </div>
+      `;
+    }
+
+    /* ==========================================================================
+       6. ANSWER EVALUATION & TTS INTEGRATION
+       ========================================================================== */
+    function submitAnswer(chosenIdx) {
+      clearInterval(state.timerInterval);
+      const q = QUESTIONS_DB[state.currentQIndex];
+      const isCorrect = (chosenIdx === q.correctIndex);
+
+      state.answersLog.push({
+        qId: q.id,
+        nodeName: q.nodeName,
+        isCorrect: isCorrect,
+        chosen: q.options[chosenIdx],
+        correct: q.options[q.correctIndex]
+      });
+
+      if (isCorrect) {
+        playCorrectSound();
+        state.combo++;
+        const multiplier = state.combo > 2 ? 1.5 : (state.combo > 1 ? 1.2 : 1.0);
+        const earned = Math.round(CONFIG.baseScore * multiplier);
+        state.score += earned;
+        showFeedbackModal(true, `正確！獲得 +${earned} 偵探推理積分 (Combo x${state.combo})`, q);
+      } else {
+        playWrongSound();
+        state.combo = 0;
+        state.hp = Math.max(0, state.hp - CONFIG.damagePerError);
+        state.wrongPool.push(q);
+        showFeedbackModal(false, `遺憾答錯！扣除 ${CONFIG.damagePerError} 心智血量。`, q);
+      }
+      updateHUD();
+    }
+
+    function handleTimeOut() {
+      const q = QUESTIONS_DB[state.currentQIndex];
+      playWrongSound();
+      state.combo = 0;
+      state.hp = Math.max(0, state.hp - CONFIG.damagePerError);
+      state.wrongPool.push(q);
+      state.answersLog.push({
+        qId: q.id,
+        nodeName: q.nodeName,
+        isCorrect: false,
+        chosen: "TIMEOUT",
+        correct: q.options[q.correctIndex]
+      });
+      showFeedbackModal(false, "⏰ 思考逾時！已扣除心智血量。", q);
+      updateHUD();
+    }
+
+    function showFeedbackModal(isCorrect, subtitle, q) {
+      const fbModal = document.getElementById('feedback-modal');
+      document.getElementById('fb-icon').innerText = isCorrect ? "🎉" : "❌";
+      document.getElementById('fb-title').innerText = isCorrect ? "Investigation Success! 推理成功" : "Clue Missed! 錯失線索";
+      document.getElementById('fb-title').className = `text-xl font-bold font-cinzel ${isCorrect ? 'text-amber-400' : 'text-red-400'} mb-1`;
+      document.getElementById('fb-subtitle').innerText = subtitle;
+      
+      document.getElementById('fb-target-sentence').innerText = q.targetSentence;
+      document.getElementById('fb-target-translation').innerText = q.sentenceTranslation;
+      
+      // Reveal Knowledge Node Details AFTER Answered
+      document.getElementById('fb-explanation').innerHTML = `
+        <div class="font-bold text-amber-300 mb-1">📌 本題知識點：${q.nodeName}</div>
+        <strong>解析 Explanation:</strong> ${q.hints[2]}
+      `;
+
+      fbModal.classList.remove('hidden');
+      speakSentence(q.targetSentence);
+    }
+
+    function nextQuestion() {
+      document.getElementById('feedback-modal').classList.add('hidden');
+      
+      if (state.hp <= 0) {
+        renderGameOverScreen();
+        return;
+      }
+
+      state.currentQIndex++;
+      if (state.currentQIndex < QUESTIONS_DB.length) {
+        renderQuestion();
+      } else {
+        if (state.wrongPool.length > 0) {
+          renderMasteryRetryScreen();
+        } else {
+          renderDiagnosticReport();
+        }
+      }
+    }
+
+    /* ==========================================================================
+       7. SCAFFOLDING & GEMINI AI TUTOR INTEGRATION
+       ========================================================================== */
+    function openScaffoldModal() {
+      playClickSound();
+      const q = QUESTIONS_DB[state.currentQIndex];
+      document.getElementById('hint-1-text').innerText = q.hints[0];
+      document.getElementById('hint-2-text').innerText = q.hints[1];
+      
+      document.getElementById('hint-2-box').classList.remove('hidden');
+      document.getElementById('hint-3-box').classList.remove('hidden');
+
+      document.getElementById('scaffold-modal').classList.remove('hidden');
+    }
+
+    function closeScaffoldModal() {
+      playClickSound();
+      document.getElementById('scaffold-modal').classList.add('hidden');
+    }
+
+    async function triggerGeminiAITutor() {
+      const q = QUESTIONS_DB[state.currentQIndex];
+      const hint3Text = document.getElementById('hint-3-text');
+      const askBtn = document.getElementById('ask-ai-btn');
+
+      hint3Text.innerText = "⏳ 偵探助教思考中 (Consulting Gemini AI)...";
+      askBtn.disabled = true;
+
+      const promptText = `你是一位19世紀巴黎偵探助教。學生正在作答英文題目：
+題目：${q.question}
+知識點領域：${q.nodeName}
+正確答案：${q.options[q.correctIndex]}
+請給予學生50字內的【蘇格拉底啟發式提示】，切記絕對不可以直接說出正確答案！雙語呈現。`;
+
+      try {
+        if (!state.userApiKey) {
+          setTimeout(() => {
+            hint3Text.innerHTML = `💡 <strong>AI 助教導引：</strong> 觀察句中的主要動詞與介系詞對應關係！想想看此語法結構在句中的語意（主動或被動？）。 (Think about the standard syntax structure!)`;
+            askBtn.disabled = false;
+          }, 800);
+          return;
+        }
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.geminiModel}:generateContent?key=${state.userApiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+          })
+        });
+
+        const data = await res.json();
+        const aiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "請留意句型結構與詞性搭配！";
+        hint3Text.innerText = aiReply;
+      } catch (err) {
+        hint3Text.innerText = "💡 提示：請關注題目中的動詞與介系詞搭配規則！";
+      } finally {
+        askBtn.disabled = false;
+      }
+    }
+
+    /* ==========================================================================
+       8. RETRY POOL & MASTERY STATE
+       ========================================================================== */
+    function renderMasteryRetryScreen() {
+      const main = document.getElementById('main-stage');
+      main.innerHTML = `
+        <div class="flex-1 flex flex-col items-center justify-center text-center p-4">
+          <div class="text-5xl mb-3">⚖️</div>
+          <h2 class="text-2xl font-bold font-cinzel text-amber-400 mb-2">終極法庭：錯題證物重審</h2>
+          <p class="text-xs text-slate-300 max-w-md mb-6">
+            偵探！您剛才有 ${state.wrongPool.length} 題答錯或逾時的證物線索。請進行二次精熟重練以完成最終結算！
+          </p>
+          <button onclick="startWrongPoolRetry()" class="px-6 py-3 gold-button font-bold text-base rounded-xl">
+            🔄 開始錯題精熟重練 (Retry Missed Clues)
+          </button>
+        </div>
+      `;
+    }
+
+    function startWrongPoolRetry() {
+      QUESTIONS_DB.length = 0;
+      QUESTIONS_DB.push(...state.wrongPool);
+      state.wrongPool = [];
+      state.currentQIndex = 0;
+      renderQuestion();
+    }
+
+    function renderGameOverScreen() {
+      clearInterval(state.timerInterval);
+      const main = document.getElementById('main-stage');
+      main.innerHTML = `
+        <div class="flex-1 flex flex-col items-center justify-center text-center p-4">
+          <div class="text-6xl mb-3">💔</div>
+          <h2 class="text-2xl font-bold font-cinzel text-red-400 mb-2">辦案失敗 (Mental Exhaustion)</h2>
+          <p class="text-xs text-slate-300 max-w-md mb-6">
+            心智血量已耗盡！瑪蒂達陷入了債務迷宮... 請重整旗鼓再次挑戰！
+          </p>
+          <button onclick="startGame()" class="px-6 py-3 gold-button font-bold text-base rounded-xl">
+            🔁 重新開始調查 (Restart Game)
+          </button>
+        </div>
+      `;
+    }
+
+    /* ==========================================================================
+       9. DIAGNOSTIC REPORT & EXPORT
+       ========================================================================== */
+    function renderDiagnosticReport() {
+      clearInterval(state.timerInterval);
+      const main = document.getElementById('main-stage');
+      
+      const totalCount = state.answersLog.length;
+      const correctCount = state.answersLog.filter(a => a.isCorrect).length;
+      const accuracy = Math.round((correctCount / Math.max(1, totalCount)) * 100);
+
+      main.innerHTML = `
+        <div class="flex-1 flex flex-col justify-between p-2 md:p-4 text-slate-100">
+          <div class="text-center mb-3">
+            <span class="text-4xl">👑💎</span>
+            <h2 class="text-xl md:text-2xl font-bold font-cinzel text-amber-400">
+              偵探推理診斷報告 (Diagnostic Report)
+            </h2>
+            <p class="text-xs text-amber-200/80">真相大白：項鍊其實只值 500 法郎！ (It was actually a fake!)</p>
+          </div>
+
+          <!-- Score Card Grid -->
+          <div class="grid grid-cols-3 gap-3 mb-4 text-center">
+            <div class="bg-slate-950 p-3 rounded-lg border border-amber-600/50">
+              <div class="text-[10px] text-slate-400">FINAL SCORE</div>
+              <div class="text-xl font-bold font-mono text-amber-400">${state.score}</div>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-lg border border-amber-600/50">
+              <div class="text-[10px] text-slate-400">ACCURACY 正確率</div>
+              <div class="text-xl font-bold font-mono text-green-400">${accuracy}%</div>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-lg border border-amber-600/50">
+              <div class="text-[10px] text-slate-400">REMAINING HP</div>
+              <div class="text-xl font-bold font-mono text-red-400">${state.hp}</div>
+            </div>
+          </div>
+
+          <!-- Learning Record Table -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 max-h-48 overflow-y-auto mb-4 text-xs">
+            <div class="font-bold text-amber-300 mb-2 border-b border-slate-800 pb-1">
+              📋 知識點領域作答歷程 Diagnostic Log:
+            </div>
+            ${state.answersLog.map(a => `
+              <div class="flex justify-between items-center py-1 border-b border-slate-900">
+                <span>${a.nodeName}</span>
+                <span class="${a.isCorrect ? 'text-green-400' : 'text-red-400'} font-bold">
+                  ${a.isCorrect ? '✓ Correct' : '✗ Missed'} (${a.chosen})
+                </span>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Export Actions -->
+          <div class="flex flex-col md:flex-row gap-2">
+            <button onclick="exportCSV()" class="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-bold transition">
+              📥 匯出學習歷程 CSV (Export CSV)
+            </button>
+            <button onclick="startGame()" class="flex-1 py-2.5 gold-button rounded-lg text-xs font-bold">
+              🔄 再次辦案 (Play Again)
+            </button>
+          </div>
+        </div>
+      `;
+
+      speakSentence("Congratulations Inspector! You have solved the mystery of the diamond necklace.");
+    }
+
+    function exportCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Clue_ID,Knowledge_Node,Result,Chosen_Option\n";
+      state.answersLog.forEach(row => {
+        csvContent += `${row.qId},"${row.nodeName}",${row.isCorrect ? 'PASS' : 'FAIL'},"${row.chosen}"\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Necklace_Detective_Report_${state.playerName}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
